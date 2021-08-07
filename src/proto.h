@@ -105,3 +105,6 @@ struct command pick_best_command(unsigned, struct command, ...);
 int is_better(struct command, struct command);
 short command_size(struct command);
 unsigned short compressed_length(const struct command *, unsigned short);
+
+// dpcomp.c
+struct command * compress_dp(const unsigned char * data, const unsigned char * bitflipped, unsigned short * size);
