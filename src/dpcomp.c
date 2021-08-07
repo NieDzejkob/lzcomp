@@ -1,5 +1,9 @@
 #include "proto.h"
 
+unsigned min(unsigned a, unsigned b) {
+    return a < b ? a : b;
+}
+
 // best_size[i] = the best compressed length for the first i bytes of input
 // Note that this is nondecreasing, since truncating even in
 // the middle of a command won't enlarge it.
@@ -52,7 +56,7 @@ void process_input(void) {
 
     for (unsigned plen = 1; plen <= size; plen++) {
         unsigned char current_byte = data[plen - 1];
-        for (unsigned prev = 0; prev < plen; prev++) {
+        for (unsigned prev = plen > MAX_COMMAND_COUNT ? plen - MAX_COMMAND_COUNT : 0; prev < plen; prev++) {
             consider(plen, (struct command) {
                 .command = 0,
                 .count = plen - prev,
@@ -68,7 +72,7 @@ void process_input(void) {
                 .count = count,
                 .value = current_byte,
             });
-        } while (count < plen && data[plen - (count + 1)] == current_byte);
+        } while (count < MAX_COMMAND_COUNT && count < plen && data[plen - (count + 1)] == current_byte);
 
         if (plen > 1) {
             count = 1;
@@ -79,11 +83,11 @@ void process_input(void) {
                     .count = count,
                     .value = (data[plen - count + 1] << 8) | (data[plen - count]),
                 });
-            } while (count < plen && data[plen - (count + 1)] == data[plen - (count - 1)]);
+            } while (count < MAX_COMMAND_COUNT && count < plen && data[plen - (count + 1)] == data[plen - (count - 1)]);
         }
 
         for (unsigned at = 0; at < plen - 1; at++) {
-            unsigned k = match_right(plen - 1, at);
+            unsigned k = min(MAX_COMMAND_COUNT, match_right(plen - 1, at));
             for (int i = 2; i <= k; i++) {
                 consider(plen + i - 1, (struct command) {
                     .command = 4,
@@ -92,7 +96,7 @@ void process_input(void) {
                 });
             }
 
-            k = match_left(plen - 1, at);
+            k = min(MAX_COMMAND_COUNT, match_left(plen - 1, at));
             for (int i = 2; i <= k; i++) {
                 consider(plen + i - 1, (struct command) {
                     .command = 6,
@@ -101,7 +105,7 @@ void process_input(void) {
                 });
             }
 
-            k = match_flipped(plen - 1, at);
+            k = min(MAX_COMMAND_COUNT, match_flipped(plen - 1, at));
             for (int i = 2; i <= k; i++) {
                 consider(plen + i - 1, (struct command) {
                     .command = 5,
