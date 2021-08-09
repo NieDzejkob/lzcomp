@@ -7,9 +7,9 @@ unsigned min(unsigned a, unsigned b) {
 // best_size[i] = the best compressed length for the first i bytes of input
 // Note that this is nondecreasing, since truncating even in
 // the middle of a command won't enlarge it.
-static unsigned * best_size;
+static unsigned *best_size;
 // best_command[i] = the last command of the command stream that yields best_size[i]
-static struct command * best_command;
+static struct command *best_command;
 
 static const unsigned char *data, *bitflipped;
 static unsigned size;
@@ -24,19 +24,22 @@ void consider(unsigned pos, struct command cmd) {
 
 unsigned match_right(unsigned pos, unsigned at) {
     unsigned n = 0;
-    while (pos+n < size && data[pos+n] == data[at+n]) n++;
+    while (pos + n < size && data[pos + n] == data[at + n])
+        n++;
     return n;
 }
 
 unsigned match_flipped(unsigned pos, unsigned at) {
     unsigned n = 0;
-    while (pos+n < size && bitflipped[pos+n] == data[at+n]) n++;
+    while (pos + n < size && bitflipped[pos + n] == data[at + n])
+        n++;
     return n;
 }
 
 unsigned match_left(unsigned pos, unsigned at) {
     unsigned n = 0;
-    while (pos+n < size && n <= at && data[pos+n] == data[at-n]) n++;
+    while (pos + n < size && n <= at && data[pos + n] == data[at - n])
+        n++;
     return n;
 }
 
@@ -52,7 +55,8 @@ void process_input(void) {
     best_size = malloc(sizeof(unsigned) * (size + 1));
     best_command = malloc(sizeof(struct command) * (size + 1));
     best_size[0] = 0;
-    for (unsigned short i = 1; i <= size; i++) best_size[i] = -1u;
+    for (unsigned short i = 1; i <= size; i++)
+        best_size[i] = -1u;
 
     for (unsigned plen = 1; plen <= size; plen++) {
         unsigned char current_byte = data[plen - 1];
@@ -117,7 +121,7 @@ void process_input(void) {
     }
 }
 
-struct command * compress_dp(const unsigned char * _data, const unsigned char * _bitflipped, unsigned short * psize) {
+struct command *compress_dp(const unsigned char *_data, const unsigned char *_bitflipped, unsigned short *psize) {
     data = _data;
     bitflipped = _bitflipped;
     size = *psize;
@@ -130,7 +134,7 @@ struct command * compress_dp(const unsigned char * _data, const unsigned char * 
     }
     *psize = command_count;
 
-    struct command * buf = malloc(sizeof(struct command) * command_count);
+    struct command *buf = malloc(sizeof(struct command) * command_count);
     pos = size;
     while (pos > 0) {
         buf[--command_count] = best_command[pos];
